@@ -17,26 +17,26 @@ class LogSubmissionJob implements ShouldQueue
     protected array $submissionDTOs;
     protected SubmissionLogService $submissionLogService;
 
-    public function __construct(array $submissionDTOs, SubmissionLogService $submissionLogService)
+    public function __construct(array $submissionDTOs)
     {
         $this->submissionDTOs = $submissionDTOs;
-        $this->submissionLogService = $submissionLogService;
+        $this->submissionLogService = app(SubmissionLogService::class);
     }
 
     public function handle()
     {
         try {
-            // insert submissions to external service (https://jsonplaceholder.typicode.com)
+            // Insert submissions to external service
             $responses = $this->submissionLogService->submitMultipleSubmissions($this->submissionDTOs);
 
             // Create submissionLogDTOs for logging
             $submissionLogDTOs = $this->submissionLogService->createSubmissionLogDTOs($responses);
 
-            // insert Logs submissions to submission_logs table
+            // Insert logs into submission_logs table
             $this->submissionLogService->insert($submissionLogDTOs);
+            
         } catch (\Exception $e) {
             Log::error('Failed to log submissions: ' . $e->getMessage());
-
             throw $e;
         }
     }

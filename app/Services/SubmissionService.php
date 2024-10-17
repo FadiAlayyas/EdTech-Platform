@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\DTO\SubmissionDTO;
+use App\Events\SubmissionsInserted;
 use App\HttpServices\Services\SubmissionHttpService;
 use App\Jobs\LogSubmissionJob;
 use Illuminate\Support\Facades\DB;
@@ -82,7 +83,7 @@ class SubmissionService
         $submissionDTOs = $this->createSubmissionDTOs($validatedData['submissions']);
 
         // Dispatch a job to log the submissions asynchronously
-        LogSubmissionJob::dispatch($submissionDTOs, $this->submissionLogService);
+        event(new SubmissionsInserted($submissionDTOs));
 
         DB::commit();
 
